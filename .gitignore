@@ -6,7 +6,7 @@ bin-release/
 
 # Other files and folders
 .settings/
-.env
+backend/.env
 venv
 dataset
 kaggle.json
@@ -20,3 +20,12 @@ kaggle.json
 # Project files, i.e. `.project`, `.actionScriptProperties` and `.flexProperties`
 # should NOT be excluded as they contain compiler settings and other important
 # information for Eclipse / Flash Builder.
+backend/.env
+the-tokenizer-450120-i0-50ae4af36552.json
+the-tokenizer-450120-i0-109dcaf1f39c.json
+backend/.env
+the-tokenizer-450120-i0-50ae4af36552.json
+the-tokenizer-450120-i0-109dcaf1f39c.json
+backend/.env
+the-tokenizer-450120-i0-50ae4af36552.json
+the-tokenizer-450120-i0-109dcaf1f39c.json
