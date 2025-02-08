@@ -9,7 +9,7 @@ bin-release/
 backend/.env
 venv
 backend/kaggle.json
-best_waste_classifier.pth
+dataset
 
 # Executables
 *.swf
