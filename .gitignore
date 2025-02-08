@@ -10,6 +10,7 @@ backend/.env
 venv
 dataset
 backend/kaggle.json
+best_waste_classifier.pth
 
 # Executables
 *.swf
