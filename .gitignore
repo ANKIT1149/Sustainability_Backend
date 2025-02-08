@@ -6,9 +6,11 @@ bin-release/
 
 # Other files and folders
 .settings/
-
+.env
 venv
 dataset
+kaggle.json
+
 # Executables
 *.swf
 *.air
