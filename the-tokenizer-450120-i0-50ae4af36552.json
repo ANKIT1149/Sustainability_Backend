@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "the-tokenizer-450120-i0",
+  "private_key_id": "50ae4af365526e5bacff163c26193a5665357f5e",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDM5vLsoPCM1xl9\n5RYsn8RFTPA2R9DafTX6b6yzopVlQaFR8YppQe+KQRJYV44E6f9jAMjp7PtqDx1v\nd1qy8dLBFHvdDCoFEleY2G+2SbzhdvK93jeIrtIQHGA1kPUfPJmbw2Z9rtNkVi+2\nUwtBEx68OY9FdAUt0dd0nqw3ijcFqQ4c0TSWzhsoIFwnkWYQ+NsR+XAJa33n+X/6\nz/wUn/3Dq9Z55vJGce93rYIdElVI8jQ0xMNpW6Wt0yzCC0BBiMxlVh7iaGI4Euj2\nF9Nyjah69Frkk0yJVwwWZATIN2ON8PbusEdkpzSrr+ih1ST6IbzFb9nnfrFaP45a\n5cRJXTlTAgMBAAECggEAJy2ll08yj4t1aVgLRF8MFUAf0hErQwub7ZW6zOIydJj2\n8ocfsv6TgbjtfAzJr/DaDyEQSYIxlFbthumoYvzQEnELOfngcvXN4ADKY213+xhW\nU62QqsbajZAPaU6dP+rDaEAVccSi0NWV6+O3DCtOvii3V01WzCsKalcIkNoRqTgR\nSkkBLMmdCYC2qzU8OEsqmxHUIZcxBWXL9suPgr0h0OnDXgHVe1Dea1UA7ohl+Wug\nXPPcByeMWKsgwigrgyl/+bX9R+NG5FqRiy4Wa1KVhLGqOEs+0IhNpIMk6Mx3JHZu\n5aFblxFRW6I8EuWihrGBfAmeWJR3gPD+zOcrEBaX8QKBgQDqQ4zSve3CUSOjMiXK\njXXDIyIff4ZKi7ByE1BQSYqp/bXvyQn2aOV+plY/c5uCqL9J7+15uO28CwUqZIn8\ns/prVlkeyKuUEOTBnndeZftntbX2dJ2slF4S/IIKVXgb6F+MBa9UayY/i8vpqwT+\nw3sUVr3iRmiXzSaV6kBIL0IYSQKBgQDf6fjoJ2P/S69FeSaRaSu4Io8srTYG6iaA\nPDVdAvw6iskNkpU0oq88vUAMGsyi0yhl/2BuLPmo1GW/5x5PmXdaOxiPStFcmAr/\nNCtDJvyCXQep9Y7NQNg93rlGQz3HjmjrWR1coF9XsnV/6VCz0qtP6+JQ0dWkv5F3\nzG+iPQGcuwKBgAkgMocvIOj18jZ0SKaYViMQ5k5l0FxtDqWS/QjzpHQ0zvaVVU8F\nDROe9TMplMBFRJZjw1N/kbtGjp/1JK70b+foiDY7yPtOoSqtuqaxwFZs7La6Gj5T\n1UpWDdbLN4+WwMoampbmSaomDv5+TAaEpPHI40LCTWbEdiFW68QkGyYJAoGBALEP\n47Qw8fI/dyoI02bJM7k4Gt/JWJ+/KRLeiZQzeCES/kmtUC9/NfNh8/OefZOERr3h\nY++7wPCwhIVrzZxETw0bDiDBmS0PTiLgrhU8DxFHX3gWpgXI8TZ7mSbmpUPYaT8y\nCPXmG37Nr/ymExsfzDg234/pXngYxH9nOh+g/lVhAoGBAL9j8FE98ksKhDiJx9Ga\nrCWENeH16f67SX2xwcdQROOKG+S82DKXrBRusPq4gkOWf3z0y5MiPAhdnY8QnVIE\nWMsE/qeNOa4OTfbe7x70GH44+RDGgD+v5vCuLt/9QRslJ3oc5F6bMiyLf2RSeARd\nAVLQNacvEwJgmfkunnY2QrXk\n-----END PRIVATE KEY-----\n",
+  "client_email": "vision-api-service@the-tokenizer-450120-i0.iam.gserviceaccount.com",
+  "client_id": "110338985391930732209",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/vision-api-service%40the-tokenizer-450120-i0.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
