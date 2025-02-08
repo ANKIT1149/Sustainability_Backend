@@ -9,7 +9,7 @@ bin-release/
 backend/.env
 venv
 dataset
-kaggle.json
+backend/kaggle.json
 
 # Executables
 *.swf
