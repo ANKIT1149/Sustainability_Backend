@@ -31,3 +31,5 @@ the-tokenizer-450120-i0-50ae4af36552.json
 the-tokenizer-450120-i0-109dcaf1f39c.json
 backend/.env
 *.json
+backend/.env
+*.json
