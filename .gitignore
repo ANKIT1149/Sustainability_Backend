@@ -8,10 +8,10 @@ bin-release/
 .settings/
 backend/.env
 venv
-dataset
 backend/kaggle.json
 best_waste_classifier.pth
 __pycache__/
+dataset
 
 # Executables
 *.swf
@@ -35,3 +35,4 @@ backend/.env
 *.json
 backend/.env
 *.json
+dataset/
