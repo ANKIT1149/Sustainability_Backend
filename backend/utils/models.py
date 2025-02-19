@@ -32,3 +32,22 @@ class Product(BaseModel):
 class ProductResponse(BaseModel):
     waste_type: str
     recommended_products: List[Product]
+
+
+class RegisterUser(BaseModel):
+    username: str
+    email: str
+    password: str
+
+class VerificationUser(BaseModel):
+    email: str
+    code: str
+
+class LoginUser(BaseModel):
+    email: str
+    password: str
+    
+class WasteReporter(BaseModel):
+    title: str
+    description: str
+    location: str
