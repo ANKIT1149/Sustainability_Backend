@@ -1,19 +1,29 @@
+from datetime import timedelta, datetime, timezone
 import random
 import re
-from fastapi import FastAPI, File, HTTPException, UploadFile
+import string
+from bson import ObjectId
+from fastapi import BackgroundTasks, Depends, FastAPI, File, Form, HTTPException, UploadFile
 import uuid
-
+import jwt
+from fastapi.security import OAuth2PasswordBearer
+from backend.utils.send_email_utils import send_email
+import bcrypt
 import uvicorn
 from backend.utils.ai_model import predict_image
 from backend.utils.models import (
+    LoginUser,
+    RegisterUser,
     UploadModel,
+    VerificationUser,
     WasteModel,
     MessageResponse,
     MessageRequest,
     Product,
     ProductResponse,
+    WasteReporter,
 )
-from backend.utils.db_utils import db, fs, collections
+from backend.utils.db_utils import db, fs, collections, user_collections, report_collections
 from backend.utils.deep_ai import anylyze_image
 from backend.utils.openai import generate_answer_from_waste
 from backend.utils.getloation import find_nearest_recycling_center
@@ -43,6 +53,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# secret
+SECRET_KEY = "TECHKITINNOVATIVE"
+ALGORITHM = "HS256"
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
 
 # test
 @app.get("/")
@@ -53,14 +68,23 @@ def Home():
 # image upload
 @app.post("/upload", response_model=UploadModel)
 async def upload_waste_image(
-    file: UploadFile = File(...), lat: float = None, lon: float = None
+    file: UploadFile = File(...),
+    lat: float = None,
+    lon: float = None,
+    token: str = Depends(oauth2_scheme),
 ):
     image_id = str(uuid.uuid4())
     read_file = await file.read()
 
     image_fs = fs.put(read_file, filename=file.filename)
 
-    image_id_str = str(image_fs)
+    token = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    user = token.get("user_id")
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    image_id_str = user
 
     final_prediction = anylyze_image(read_file)
 
@@ -170,9 +194,142 @@ async def suggest_alternative(image_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed: {str(e)}")
 
+
+def generate_verification_code():
+    return "".join(random.choices(string.digits, k=6))
+
+
+@app.post("/register")
+async def register_user(user: RegisterUser, background: BackgroundTasks):
+    if user_collections is None:
+        raise HTTPException(status_code=500, detail="Collection not found in db")
+
+    exsistingEmail = user_collections.find_one({"email": user.email})
+    if exsistingEmail:
+        raise HTTPException(status_code=400, detail="User found with this email")
+
+    hashedpassword = bcrypt.hashpw(user.password.encode("utf-8"), bcrypt.gensalt())
+    verification_code = {
+        "code": generate_verification_code(),
+        "expiry": datetime.now() + timedelta(minutes=20),
+    }
+
+    verification_data = verification_code["code"]
+    subject = "OTP Verification(Authentication)"
+    body = f"Hello, \n\nWe are from Ecoscan and We are sending OTP for your email verification.\n\nYour Verification code is: {verification_data}.\n\nThanks for conecting us"
+
+    user_data = {
+        "username": user.username,
+        "email": user.email,
+        "password": hashedpassword.decode("utf-8"),
+        "is_verified": False,
+        "verification_code": verification_code,
+    }
+
+    new_users = user_collections.insert_one(user_data)
+    background.add_task(send_email, user.email, subject, body)
+    return {
+        "status": 201,
+        "message": "User registered Successfully",
+        "user_id": str(new_users.inserted_id),
+    }
+
+
+@app.post("/verify")
+async def verify_email(user: VerificationUser):
+    exsistingUser = user_collections.find_one({"email": user.email})
+    if not exsistingUser:
+        raise HTTPException(status_code=404, detail="Email not found")
+
+    verification_data = exsistingUser.get("verification_code", {})
+    stored_code = verification_data.get("code", None)
+    stored_expiry = verification_data.get("expiry", None)
+
+    if datetime.now() > stored_expiry:
+        raise HTTPException(status_code=400, detail="OTP Expired Please Register again")
+
+    if stored_code != user.code:
+        raise HTTPException(
+            status_code=404, detail="Your verification code nopt amtch.Try agian"
+        )
+
+    user_collections.update_one(
+        {"_id": exsistingUser["_id"]},
+        {
+            "$set": {
+                "is_verified": True,
+                "verification_code": {
+                    "code": "",
+                    "expiry": datetime.now() + timedelta(seconds=0),
+                },
+            }
+        },
+    )
+
+    return {"status": 200, "message": "Email Verified Successfully.Now you can login"}
+
+
+@app.post("/login")
+async def login_user(user: LoginUser):
+    user_data = user_collections.find_one({"email": user.email})
+    if not user_data:
+        raise HTTPException(status_code=404, detail="EMail not found")
+
+    if not user_data["is_verified"]:
+        raise HTTPException(status_code=400, detail="User not verified")
+
+    if not bcrypt.checkpw(
+        user.password.encode("utf-8"), user_data["password"].encode("utf-8")
+    ):
+        raise HTTPException(status_code=400, detail="Password not match")
+
+    token_data = {
+        "sub": user.email,
+        "user_id": str(user_data["_id"]),
+        "exp": datetime.now(timezone.utc) + timedelta(days=1),
+    }
+
+    token = jwt.encode(token_data, SECRET_KEY, ALGORITHM)
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "message": "Login successfully",
+        "status_code": 200,
+    }
+
+
+@app.post("/waste_report")
+async def waste_report(
+    token: str = Depends(oauth2_scheme),
+    file: UploadFile = File(...),
+    title: str = Form(...),
+    description: str = Form(...),
+    location: str = Form(...),
+):
+    token = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    user_id = token.get("user_id")
+
+    if not user_id:
+        raise HTTPException(status_code=404, detail="User id not found")
+
+    read_file = await file.read()
+    image_fs = fs.put(read_file, filename=file.filename)
+
+    user_report = {
+        "report_id": user_id,
+        "title": title,
+        "description": description,
+        "location": location,
+    }
+
+    new_report = report_collections.insert_one(user_report)
+    return {
+        "status": 201,
+        "message": "Report submitted successfully",
+        "user_id": str(new_report.inserted_id),
+    }
+
+
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 8000))  # Default to 8000 if PORT is not set
+    port = int(os.getenv("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
-
-
-
