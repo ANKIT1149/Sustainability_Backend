@@ -117,7 +117,6 @@ python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 python-multipart==0.0.20
 python-slugify==8.0.4
-pywin32==308
 pyzmq==26.2.1
 referencing==0.36.2
 requests==2.32.3
