@@ -1,4 +1,5 @@
 import os
+import zipfile
 import torch
 import torchvision.transforms as transforms
 from torchvision import datasets, models
@@ -9,13 +10,35 @@ from PIL import Image
 from tqdm import tqdm
 import io
 from collections import Counter
+import gdown
 
 # model training code
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 
-dataset_Path = os.path.join(os.getcwd(), "dataset", "images", "images")
+file_id = "13Db44IjMJFXZTMOroJkNHHL4SkgGBYYF"
+destination = "dataset.zip"
+extract_folder = "Dataset/images/images"
+
+if not os.path.exists(extract_folder):
+    print("📥 Dataset not found. Downloading...")
+
+    path = gdown.download(
+    f"https://drive.google.com/uc?id={file_id}", destination, quiet=False
+    )
+
+    with zipfile.ZipFile(destination, 'r') as zip_ref:
+        zip_ref.extractall(extract_folder)
+
+    os.remove(destination)
+
+else:
+    print("✅ Dataset already exists. Skipping download.")
+
+
+dataset_Path = os.path.join(os.getcwd(), extract_folder)
+print(f"📂 Dataset Path: {dataset_Path}")
 
 
 transform = transforms.Compose(
