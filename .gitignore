@@ -9,6 +9,8 @@ bin-release/
 backend/.env
 venv
 backend/kaggle.json
+best_waste_classifier.pth
+__pycache__/
 dataset
 
 # Executables
