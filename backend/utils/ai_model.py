@@ -19,13 +19,19 @@ print(f"Using device: {device}")
 # Model File & Class Labels File
 MODEL_FILE = "best_waste_classifier.pth"
 CLASSES_FILE = "class_labels.json"
-
+RESNET_WEIGHTS = "resnet50_pretrained.pth"
 
 with open(CLASSES_FILE, "r") as f:
     class_labels = json.load(f)
-    
+
 # Load Model
-model = models.resnet50(weights="IMAGENET1K_V2")
+model = models.resnet50(weights=None)
+if os.path.exists(RESNET_WEIGHTS):
+    print(f"✅ Loading pre-trained ResNet50 weights from {RESNET_WEIGHTS}...")
+    model.load_state_dict(torch.load(RESNET_WEIGHTS, map_location="cpu"))
+else:
+    print("⚠ Pre-trained ResNet50 weights not found!")
+
 model.fc = torch.nn.Linear(model.fc.in_features, 30)
 
 if os.path.exists(MODEL_FILE):
