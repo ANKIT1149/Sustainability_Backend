@@ -51,3 +51,8 @@ class WasteReporter(BaseModel):
     title: str
     description: str
     location: str
+
+class UpdateDetail(BaseModel):
+    username: str
+    email: str
+    password: Optional[str] = None 
