@@ -2,9 +2,10 @@ version: 1.0
 runtime: python3
 build:
   commands:
-    - pip install --upgrade pip
-    - pip install -r requirements.txt
+    - python3 -m ensurepip --default-pip
+    - python3 -m pip install --upgrade pip
+    - python3 -m pip install -r requirements.txt
 run:
-  command: uvicorn backend.app:app --host 0.0.0.0 --port 8000
+  command: "uvicorn backend.app:app --host 0.0.0.0 --port 8000"
   network:
     port: 8000
