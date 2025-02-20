@@ -16,10 +16,30 @@ import gdown
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 
+MODEL_ID = (
+    "https://drive.google.com/file/d/1Y_F7MrMsqLrTGP74Drs3sSeHa0desjqZ/view?usp=sharing"
+)
+RESNET_ID = (
+    "https://drive.google.com/file/d/1Cdt-khi_26zzAPhrPzIFFF9J6tiO40pN/view?usp=sharing"
+)
+
 # Model File & Class Labels File
 MODEL_FILE = "best_waste_classifier.pth"
 CLASSES_FILE = "class_labels.json"
 RESNET_WEIGHTS = "resnet50_pretrained.pth"
+
+
+def download_file(file_id, file_name):
+    url = f"https://drive.google.com/uc?id={file_id}"
+    if not os.path.exists(file_name):
+        print(f"📥 Downloading {file_name}...")
+        gdown.download(url, file_name, quiet=False)
+        print(f"✅ Downloaded {file_name}")
+
+
+# Download missing model files
+download_file(MODEL_ID, MODEL_FILE)
+download_file(RESNET_ID, RESNET_WEIGHTS)
 
 with open(CLASSES_FILE, "r") as f:
     class_labels = json.load(f)
