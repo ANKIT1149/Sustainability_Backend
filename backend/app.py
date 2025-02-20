@@ -429,58 +429,76 @@ async def update_detail(user: UpdateDetail, token: str = Depends(oauth2_scheme))
 
     return {"status": 200, "message": "User updated successfully", "user": data}
 
+
 @app.delete("/delete_user")
 async def delete_user(token: str = Depends(oauth2_scheme)):
-    
+
     token = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     user_id = token.get("user_id")
-    
+
     if not user_id:
         raise HTTPException(status_code=404, detail="User id not found")
-    
+
     obj_id = ObjectId(user_id)
     if not obj_id:
         raise HTTPException(status_code=400, detail="Invalid Id format")
-    
+
     delete_user = user_collections.delete_one({"_id": obj_id})
-    
+
     return {
         "status": 200,
         "message": "User deleted successfully",
-    } 
+    }
+
 
 @app.get("/ecopoints")
 async def ecopoints_show(token: str = Depends(oauth2_scheme)):
     token = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     user_id = token.get("user_id")
-    
+
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
-    
+
     user_ecopoints = ecopoints.find_one({"user_id": user_id})
     if not user_ecopoints:
         raise HTTPException(status_code=404, detail="Collection not found")
-    
+
     ecopoints_points = user_ecopoints["ecopoints"]
     print(f"Ecopoints earned:", ecopoints_points)
-    
+
     return {
         "status": 200,
         "message": "User Ecopoints founds",
-        "ecopoints": ecopoints_points
+        "ecopoints": ecopoints_points,
     }
+
 
 @app.get("/leaderboard_data")
 async def leaderboard_data():
-    user_data = list(user_collections.find())
+    user_data = list(user_collections.find({}, {"_id": 1, "username": 1}))
     print(user_data)
+
     if not user_data:
         raise HTTPException(status_code=404, detail="User Collection not found")
 
-    ecopoints_data = list(ecopoints.find())
+    ecopoints_data = list(ecopoints.find({}, {"user_id": 1, "ecopoints": 1}))
     print(ecopoints_data)
+
     if not ecopoints_data:
-        raise HTTPException(status_code=404, detail="Ecopoints Collection not found")  
+        raise HTTPException(status_code=404, detail="Ecopoints Collection not found")
+
+    point_dict = {str(p["user_id"]): p["ecopoints"] for p in ecopoints_data}
+    leaderboard = []
+    for user in user_data:
+        user_id = str(user["_id"])
+        leaderboard.append(
+            {"username": user["username"], "ecopoints": point_dict.get(user_id, 0)}
+        )
+
+    leaderboard.sort(key=lambda x: x["ecopoints"], reverse=True)
+
+    return {"leaderboard": leaderboard}
+
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
