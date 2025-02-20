@@ -17,3 +17,4 @@ fs = GridFS(db)
 collections = db["predictions"]
 user_collections = db['users']
 report_collections = db["reports"]
+ecopoints = db["ecopoints"]
