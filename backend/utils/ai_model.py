@@ -16,12 +16,9 @@ import gdown
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 
-MODEL_ID = (
-    "https://drive.google.com/file/d/1Y_F7MrMsqLrTGP74Drs3sSeHa0desjqZ/view?usp=sharing"
-)
-RESNET_ID = (
-    "https://drive.google.com/file/d/1Cdt-khi_26zzAPhrPzIFFF9J6tiO40pN/view?usp=sharing"
-)
+MODEL_ID = "1Y_F7MrMsqLrTGP74Drs3sSeHa0desjqZ"
+RESNET_ID = "1Cdt-khi_26zzAPhrPzIFFF9J6tiO40pN"
+
 
 # Model File & Class Labels File
 MODEL_FILE = "best_waste_classifier.pth"
