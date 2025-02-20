@@ -1,19 +1,33 @@
 from datetime import timedelta, datetime, timezone
+import json
 import random
 import re
 import string
 from bson import ObjectId
-from fastapi import BackgroundTasks, Depends, FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import (
+    BackgroundTasks,
+    Depends,
+    FastAPI,
+    File,
+    Form,
+    HTTPException,
+    UploadFile,
+)
 import uuid
+
+from fastapi.encoders import jsonable_encoder
+from pymongo import ReturnDocument
 import jwt
 from fastapi.security import OAuth2PasswordBearer
 from backend.utils.send_email_utils import send_email
 import bcrypt
+from torchvision import datasets
 import uvicorn
 from backend.utils.ai_model import predict_image
 from backend.utils.models import (
     LoginUser,
     RegisterUser,
+    UpdateDetail,
     UploadModel,
     VerificationUser,
     WasteModel,
@@ -23,7 +37,14 @@ from backend.utils.models import (
     ProductResponse,
     WasteReporter,
 )
-from backend.utils.db_utils import db, fs, collections, user_collections, report_collections
+from backend.utils.db_utils import (
+    db,
+    fs,
+    collections,
+    user_collections,
+    report_collections,
+    ecopoints,
+)
 from backend.utils.deep_ai import anylyze_image
 from backend.utils.openai import generate_answer_from_waste
 from backend.utils.getloation import find_nearest_recycling_center
@@ -315,6 +336,23 @@ async def waste_report(
     read_file = await file.read()
     image_fs = fs.put(read_file, filename=file.filename)
 
+    ecopints_collection = ecopoints.find_one({"user_id": user_id})
+    if not ecopints_collection:
+        print("Filter:", {"user_id": user_id})
+        print("Update:", {"$inc": {"ecopoints": 10}})
+
+        update_user_ecopoints = {"user_id": user_id, "ecopoints": 10}
+
+        new_ecopoints = ecopoints.insert_one(update_user_ecopoints)
+
+        return {"user_id": user_id, "ecopoints_id": str(new_ecopoints.inserted_id)}
+
+    else:
+        updateUser = ecopoints.update_one(
+            {"user_id": user_id}, {"$inc": {"ecopoints": 10}}
+        )
+        updateUser
+
     user_report = {
         "report_id": user_id,
         "title": title,
@@ -323,12 +361,126 @@ async def waste_report(
     }
 
     new_report = report_collections.insert_one(user_report)
+
     return {
         "status": 201,
         "message": "Report submitted successfully",
         "user_id": str(new_report.inserted_id),
     }
 
+
+@app.get("/user_Detail")
+async def user_Detail(token: str = Depends(oauth2_scheme)):
+    try:
+        token = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = token.get("user_id")
+
+        if not user_id:
+            raise HTTPException(status_code=404, detail="User id not found")
+
+        obj_id = ObjectId(user_id)
+        if not obj_id:
+            raise HTTPException(status_code=400, detail="Invalid Format")
+
+        user = user_collections.find_one({"_id": obj_id})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        user["_id"] = str(user["_id"])
+        return jsonable_encoder(user)
+
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=400, detail="Invalid Signature")
+
+
+@app.patch("/update_detail")
+async def update_detail(user: UpdateDetail, token: str = Depends(oauth2_scheme)):
+    token = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    user_id = token.get("user_id")
+
+    if not user_id:
+        raise HTTPException(status_code=400, detail="User id not found")
+
+    obj_id = ObjectId(user_id)
+    if not obj_id:
+        raise HTTPException(status_code=400, detail="Invalid Id format")
+
+    updated_data = {}
+
+    if user.username:
+        updated_data["username"] = user.username
+
+    if user.email:
+        updated_data["email"] = user.email
+
+    if user.password and user.password.strip():
+        hashedPassword = bcrypt.hashpw(user.password.encode("utf-8"), bcrypt.gensalt())
+        updated_data["password"] = hashedPassword.decode("utf-8")
+
+    updated_user = user_collections.find_one_and_update(
+        {"_id": obj_id}, {"$set": updated_data}, return_document=ReturnDocument.AFTER
+    )
+
+    if not updated_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    updated_user["_id"] = str(updated_user["_id"])
+    data = jsonable_encoder(updated_user)
+
+    return {"status": 200, "message": "User updated successfully", "user": data}
+
+@app.delete("/delete_user")
+async def delete_user(token: str = Depends(oauth2_scheme)):
+    
+    token = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    user_id = token.get("user_id")
+    
+    if not user_id:
+        raise HTTPException(status_code=404, detail="User id not found")
+    
+    obj_id = ObjectId(user_id)
+    if not obj_id:
+        raise HTTPException(status_code=400, detail="Invalid Id format")
+    
+    delete_user = user_collections.delete_one({"_id": obj_id})
+    
+    return {
+        "status": 200,
+        "message": "User deleted successfully",
+    } 
+
+@app.get("/ecopoints")
+async def ecopoints_show(token: str = Depends(oauth2_scheme)):
+    token = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    user_id = token.get("user_id")
+    
+    if not user_id:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user_ecopoints = ecopoints.find_one({"user_id": user_id})
+    if not user_ecopoints:
+        raise HTTPException(status_code=404, detail="Collection not found")
+    
+    ecopoints_points = user_ecopoints["ecopoints"]
+    print(f"Ecopoints earned:", ecopoints_points)
+    
+    return {
+        "status": 200,
+        "message": "User Ecopoints founds",
+        "ecopoints": ecopoints_points
+    }
+
+@app.get("/leaderboard_data")
+async def leaderboard_data():
+    user_data = list(user_collections.find())
+    print(user_data)
+    if not user_data:
+        raise HTTPException(status_code=404, detail="User Collection not found")
+
+    ecopoints_data = list(ecopoints.find())
+    print(ecopoints_data)
+    if not ecopoints_data:
+        raise HTTPException(status_code=404, detail="Ecopoints Collection not found")  
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
